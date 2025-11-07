@@ -1,6 +1,6 @@
 # Robô Seguidor de Cor com módulo de Visão Computacional inteligente
 
-[<center><img src="/etapa_1/robo.png"></center>](https://escola4pontozero.fee.unicamp.br/)
+[<center><img src="/etapa_1/docs/robo.png"></center>](https://escola4pontozero.fee.unicamp.br/)
 
 ---
 ## :dart: Objetivo do projeto
