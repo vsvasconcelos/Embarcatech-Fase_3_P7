@@ -1,5 +1,6 @@
 /**
- * server.c - Versão com Delay de Inicialização e Debug de Anúncio
+ * server.c - Versão Final com Monitoramento Serial Detalhado
+ * Projeto: bitdoglab (Robo Bluetooth)
  */
 #include <stdio.h>
 #include "btstack.h"
@@ -23,7 +24,7 @@ static uint8_t adv_data[] = {
 static const uint8_t adv_data_len = sizeof(adv_data);
 int le_notification_enabled;
 
-// --- VARIÁVEIS ---
+// --- VARIÁVEIS GLOBAIS DE ESTADO ---
 volatile int VERMELHO = 0;
 volatile int VERDE    = 0;
 volatile int AZUL     = 0;
@@ -33,7 +34,102 @@ volatile int ESQUERDA = 0;
 volatile int RETO     = 0;
 volatile int PARE     = 1;
 
+// Códigos do Protocolo
+#define COR_VERMELHO 0x01
+#define COR_VERDE    0x02
+#define COR_AZUL     0x03
+
+#define CMD_PARE     0x00
+#define CMD_RETO     0x01
+#define CMD_ESQUERDA 0x02
+#define CMD_DIREITA  0x03
+
 static hci_con_handle_t con_handle = HCI_CON_HANDLE_INVALID;
+
+// --- LÓGICA DE CONTROLE E MONITORAMENTO (ATUALIZADA) ---
+
+void processar_comando(uint8_t comando) {
+    // 1. Monitoramento do Dado Bruto
+    printf("\n=== [CLIENTE -> SERVIDOR] DADO RECEBIDO ===\n");
+    printf("Valor Hex: 0x%02X\n", comando);
+
+    // 2. Reset das variáveis (Exclusividade Mútua)
+    DIREITA = 0; ESQUERDA = 0; RETO = 0; PARE = 0;
+
+    const char* status_str = "DESCONHECIDO";
+
+    // 3. Atualização de Estado
+    switch (comando) {
+        case CMD_RETO:
+            RETO = 1;
+            status_str = "SEGUIR RETO";
+            break;
+        case CMD_ESQUERDA:
+            ESQUERDA = 1;
+            status_str = "VIRAR ESQUERDA";
+            break;
+        case CMD_DIREITA:
+            DIREITA = 1;
+            status_str = "VIRAR DIREITA";
+            break;
+        case CMD_PARE:
+        default:
+            PARE = 1;
+            status_str = "PARAR";
+            break;
+    }
+
+    // 4. Exibição Detalhada no Terminal
+    printf("Acao Interpretada: %s\n", status_str);
+    printf("--- ESTADO DAS VARIAVEIS ---\n");
+    printf("  [RETO]:     %d\n", RETO);
+    printf("  [ESQUERDA]: %d\n", ESQUERDA);
+    printf("  [DIREITA]:  %d\n", DIREITA);
+    printf("  [PARE]:     %d\n", PARE);
+    printf("==========================================\n");
+}
+
+void atualizar_cor_alvo(int codigo) {
+    VERMELHO = 0; VERDE = 0; AZUL = 0;
+    uint8_t valor = 0;
+
+    switch (codigo) {
+        case COR_VERMELHO: VERMELHO = 1; valor = COR_VERMELHO; break;
+        case COR_VERDE:    VERDE = 1;    valor = COR_VERDE;    break;
+        case COR_AZUL:     AZUL = 1;     valor = COR_AZUL;     break;
+    }
+
+    if (con_handle != HCI_CON_HANDLE_INVALID) {
+        att_server_notify(con_handle, ATT_CHARACTERISTIC_0000FF11_0000_1000_8000_00805F9B34FB_01_VALUE_HANDLE, &valor, 1);
+    }
+}
+
+// --- CALLBACKS ATT ---
+
+int att_write_callback(hci_con_handle_t connection_handle, uint16_t att_handle, uint16_t transaction_mode, uint16_t offset, uint8_t *buffer, uint16_t buffer_size) {
+
+    // Verifica se a escrita foi na característica de COMANDO (FF12)
+    if (att_handle == ATT_CHARACTERISTIC_0000FF12_0000_1000_8000_00805F9B34FB_01_VALUE_HANDLE) {
+        if (buffer_size >= 1) {
+            // Chama a função de processamento com o dado recebido
+            processar_comando(buffer[0]);
+        }
+    }
+    return 0;
+}
+
+uint16_t att_read_callback(hci_con_handle_t connection_handle, uint16_t att_handle, uint16_t offset, uint8_t * buffer, uint16_t buffer_size) {
+    if (att_handle == ATT_CHARACTERISTIC_0000FF11_0000_1000_8000_00805F9B34FB_01_VALUE_HANDLE) {
+        if (buffer) {
+            if (VERMELHO) buffer[0] = COR_VERMELHO;
+            else if (VERDE) buffer[0] = COR_VERDE;
+            else if (AZUL) buffer[0] = COR_AZUL;
+            else buffer[0] = 0;
+        }
+        return 1;
+    }
+    return 0;
+}
 
 // --- CALLBACKS DE EVENTOS ---
 static void packet_handler(uint8_t packet_type, uint16_t channel, uint8_t *packet, uint16_t size) {
@@ -80,43 +176,15 @@ static void packet_handler(uint8_t packet_type, uint16_t channel, uint8_t *packe
     }
 }
 
-// --- CALLBACKS ATT (Mantidos iguais) ---
-uint16_t att_read_callback(hci_con_handle_t connection_handle, uint16_t att_handle, uint16_t offset, uint8_t * buffer, uint16_t buffer_size) {
-    if (att_handle == ATT_CHARACTERISTIC_0000FF11_0000_1000_8000_00805F9B34FB_01_VALUE_HANDLE) {
-        if (buffer) {
-            if (VERMELHO) buffer[0] = 0x01;
-            else if (VERDE) buffer[0] = 0x02;
-            else if (AZUL) buffer[0] = 0x03;
-            else buffer[0] = 0;
-        }
-        return 1;
-    }
-    return 0;
-}
-
-int att_write_callback(hci_con_handle_t connection_handle, uint16_t att_handle, uint16_t transaction_mode, uint16_t offset, uint8_t *buffer, uint16_t buffer_size) {
-    if (att_handle == ATT_CHARACTERISTIC_0000FF12_0000_1000_8000_00805F9B34FB_01_VALUE_HANDLE) {
-        if (buffer_size >= 1) {
-            uint8_t cmd = buffer[0];
-            printf("Comando recebido: %d\n", cmd);
-            // Adicione sua lógica de hardware aqui (ex: gpio_put)
-        }
-    }
-    return 0;
-}
-
-// --- HEARTBEAT ---
 static btstack_timer_source_t heartbeat;
 static void heartbeat_handler(struct btstack_timer_source *ts) {
     static int cor_idx = 0;
     cor_idx = (cor_idx % 3) + 1;
 
-    // Prints de debug que você já viu funcionando
-    if (cor_idx == 1) printf("[ROBO] Cor Alvo: VERMELHO\n");
-    if (cor_idx == 2) printf("[ROBO] Cor Alvo: VERDE\n");
-    if (cor_idx == 3) printf("[ROBO] Cor Alvo: AZUL\n");
+    // Simulação: Apenas mostra o log da cor, não afeta a recepção de dados
+    if (cor_idx == 1) printf("[SERVIDOR -> CLIENTE] Notificando Cor: VERMELHO\n");
+    // atualizar_cor_alvo(cor_idx); // Descomente para enviar notificação automática
 
-    // Pisca LED da placa (Confirmação Visual)
     static int led = 0;
     cyw43_arch_gpio_put(CYW43_WL_GPIO_LED_PIN, led);
     led = !led;
@@ -128,11 +196,9 @@ static void heartbeat_handler(struct btstack_timer_source *ts) {
 // --- MAIN ---
 int main() {
     stdio_init_all();
+    sleep_ms(5000); // Tempo para abrir o monitor serial
 
-    // 1. DELAY DE SEGURANÇA (5 SEGUNDOS)
-    // Dá tempo de abrir o serial e estabilizar a energia
-    sleep_ms(5000);
-    printf("\n\n--- INICIANDO SISTEMA BITDOGLAB ---\n");
+    printf("\n\n--- INICIANDO MONITOR DO BITDOGLAB ---\n");
 
     if (cyw43_arch_init()) {
         printf("ERRO: Falha ao iniciar CYW43\n");
@@ -156,7 +222,7 @@ int main() {
 
     hci_power_control(HCI_POWER_ON);
 
-    printf("Loop principal iniciado. Aguardando Bluetooth...\n");
+    printf("Aguardando conexao Bluetooth...\n");
     btstack_run_loop_execute();
     return 0;
 }
