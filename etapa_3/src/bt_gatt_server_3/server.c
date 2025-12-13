@@ -133,6 +133,7 @@ static void reativar_anuncio_task(struct btstack_timer_source *ts) {
     int qtd = contar_conexoes();
     if (qtd < MAX_CONEXOES) {
         // printf("[ANUNCIO] Timer: Forcando via HCI (Conexoes: %d/%d)...\n", qtd, MAX_CONEXOES);
+        // https://forums.raspberrypi.com/viewtopic.php?t=381611
         hci_send_cmd(&hci_le_set_advertise_enable, 1);
     }
 }
