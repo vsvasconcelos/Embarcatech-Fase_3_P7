@@ -1,0 +1,72 @@
+// ----------------------------------------------------------------------------
+// Este arquivo (.gatt) é uma linguagem de descrição de perfil GATT
+// (Generic Attribute Profile). É usado pela BTstack GATT para gerar automaticamente
+// código C que define os serviços/características BLE que o servidor irá expor
+// Cada linha define um serviço/característica com suas propriedades e UUIDs.
+
+// ------------------ Serviço GAP (Generic Access Profile) --------------------
+// O Serviço GAP é um serviço padrão e obrigatório em todo dispositivo BLE.
+// Ele contém informações básicas sobre o dispositivo, como seu nome.
+PRIMARY_SERVICE, GAP_SERVICE
+
+// Característica: GAP_DEVICE_NAME (Nome do Dispositivo)
+// Propriedades: READ (Pode ser lida por clientes BLE).
+// Valor: "RoboMovel" (É o nome que outros dispositivos verão ao escanear).
+CHARACTERISTIC, GAP_DEVICE_NAME, READ, "BitDogLab_UCR"
+
+// ------------ Serviço Customizado do Robô (UUID Customizado) ----------------
+// Os UUIDs foram construídos usando a "Bluetooth Base UUID"
+// O Bluetooth SIG (grupo que define o padrão Bluetooth) estabeleceu um número base
+// para todos os serviços e características padrão.
+// Esse número é: 00000000-0000-1000-8000-00805F9B34FB
+
+// A Escolha do FF10, FF11 e FF12
+// Como esse projeto é um Serviço Customizado, é necessário usar UUIDs de 128 bits completos.
+// Para facilitar a leitura e a programação em tutoriais, os desenvolvedores costumam usar a
+// Base UUID oficial e apenas inserir um identificador curto "inventado" no início.
+// O Sufixo: -0000-1000-8000-00805F9B34FB (É a assinatura fixa do Bluetooth).
+// O Prefixo: 0000xxxx (Onde xxxx é o identificador escolhido).
+// Neste projeto, a escolha seguiu uma hierarquia lógica:
+// 0000FF10... (O Serviço Principal):
+// Escolheu-se FF (255 em decimal) porque é um intervalo livre, longe dos serviços padrão (que geralmente começam com 18xx).
+// Escolheu-se 10 para indicar que é o "Serviço Pai".
+// 0000FF11... (Característica A - Cor):
+// Manteve-se o FF.
+// Incrementou-se para 11 para indicar que é o "Filho 1" do serviço 10.
+// 0000FF12... (Característica B - Comandos):
+// Incrementou-se para 12 para indicar que é o "Filho 2".
+PRIMARY_SERVICE, 0000FF10-0000-1000-8000-00805F9B34FB
+
+// Característica A: COR DO ALVO (App nRF -> Server -> Pi Zero)
+// Permite Escrita (App nRF) e Notificação (Pi Zero)
+// UUID:"0000FF11-0000-1000-8000-00805F9B34FB"
+// UUID customizado para esta característica.
+// Direção: Server -> Cliente (Servidor notifica os clientes sobre a cor atual)
+// Propriedades:
+//   - READ: Clientes podem ler o valor atual desta característica sob demanda
+//   - WRITE:
+//   - WRITE_WITHOUT_RESPONSE:
+//   - NOTIFY: Servidor pode enviar notificações (envios assíncronos) aos clientes
+//             sem que eles precisem solicitar uma leitura. Isso é ideal para
+//             atualizações em tempo real, como a mudança da cor alvo do robô.
+//   - DYNAMIC: Indica que o valor desta característica é dinâmico e será gerido
+//              pelo código C em tempo de execução (no arquivo 'server.c'), em vez
+//              de ser um valor estático.
+// CHARACTERISTIC, 0000FF11-0000-1000-8000-00805F9B34FB, READ | NOTIFY | DYNAMIC,
+CHARACTERISTIC, 0000FF11-0000-1000-8000-00805F9B34FB, READ | WRITE | WRITE_WITHOUT_RESPONSE | NOTIFY | DYNAMIC,
+
+// Característica B: COMANDO DE DIREÇÃO COMANDO (Pi Zero -> Server)
+// Permite Escrita (Pi Zero)
+// UUID: "0000FF12-0000-1000-8000-00805F9B34FB"
+// UUID customizado para esta característica.
+// Direção: Cliente -> Server (Clientes enviam comandos de direção para o robô)
+// Propriedades:
+//   - WRITE: Clientes podem escrever um novo valor nesta característica.
+//   - WRITE_WITHOUT_RESPONSE: Clientes podem escrever um valor sem esperar
+//   uma confirmação do servidor. Isso pode ser mais rápido (menor latência)
+//   para comandos de controle onde a velocidade é mais importante que a
+//   garantia absoluta de entrega. No entanto, o cliente não saberá se o
+//   servidor recebeu o comando.
+//   - DYNAMIC: Indica que o valor desta característica é dinâmico e será
+//   processado pelo código C em tempo de execução ('server.c').
+CHARACTERISTIC, 0000FF12-0000-1000-8000-00805F9B34FB, WRITE | WRITE_WITHOUT_RESPONSE | DYNAMIC,
