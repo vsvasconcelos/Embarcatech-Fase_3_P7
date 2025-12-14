@@ -34,7 +34,8 @@ CHAR_CMD_UUID = "0000FF12-0000-1000-8000-00805F9B34FB"
 # Nome do dispositivo definido no pacote de anúncio do server.c
 # DEVICE_NAME: Define o nome esperado do dispositivo BLE que procuramos. Este nome é transmitido pelo servidor BLE
 # em seus pacotes de anúncio. É crucial que este nome corresponda ao que está configurado no `server.c` da Pico W.
-DEVICE_NAME = "Pico"
+DEVICE_NAME = "BitDogLab_UCR"
+# DEVICE_NAME = "Pico"
 
 # Mapas para tradução dos códigos (Hex -> Texto)
 # Dicionário Python que mapeia os valores numéricos (recebidos da Pico W) para nomes de cores.
