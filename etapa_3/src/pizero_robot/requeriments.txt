@@ -1,0 +1,9 @@
+# Bibliotecas de Visão Computacional
+opencv-python-headless>=4.5.0  # OpenCV otimizado para servidores/sistemas embarcados
+numpy>=1.21.0                 # Processamento numérico para matrizes de imagem
+
+# Bibliotecas de Comunicação
+bleak>=0.19.0                 # Cliente Bluetooth Low Energy (GATT)
+
+# Utilidades
+setuptools                    # Necessário para algumas dependências de compilação do bleak
