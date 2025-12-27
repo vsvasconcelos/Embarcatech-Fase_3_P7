@@ -1,31 +1,35 @@
-import struct  # Biblioteca para converter dados Python em bytes (formato C)
+import utils.config
 
 
-def encode_error(error: int) -> bytes:
+def encode_error(error_value):
     """
-    Converte um inteiro (erro do centroide) em 2 bytes (short).
-    Formato: '<h'
-    '<' = Little Endian (padrão ARM/Pico)
-    'h' = signed short (inteiro de 16 bits, suporta negativos)
+    Converte o erro numérico da visão em um byte de comando usando config.py.
+    """
+    if error_value is None:
+        return bytes([utils.config.CMD_PARE])
+
+    # Margem de erro (Zona morta)
+    THRESHOLD = 20
+
+    if abs(error_value) <= THRESHOLD:
+        command = utils.config.CMD_RETO
+    elif error_value < -THRESHOLD:
+        command = utils.config.CMD_ESQUERDA
+    else:
+        command = utils.config.CMD_DIREITA
+
+    return bytes([command])
+
+
+def decode_color_id(data):
+    """
+    Decodifica o ID da cor enviado pela Pico via Bluetooth.
     """
     try:
-        # Garante que o erro esteja no limite de 16 bits (-32768 a 32767)
-        error = max(min(error, 32767), -32768)
-        return struct.pack("<h", int(error))
-    except Exception as e:
-        print(f"Erro na codificação do protocolo: {e}")
-        return struct.pack("<h", 0)
-
-
-def decode_color_id(data: bytes) -> int:
-    """
-    Converte o byte recebido da Pico em um inteiro.
-    Formato: '<B'
-    'B' = unsigned char (inteiro de 8 bits, 0 a 255)
-    """
-    try:
-        # Desempacota o primeiro byte da sequência recebida
-        return struct.unpack("<B", data)[0]
-    except Exception as e:
-        print(f"Erro na decodificação da cor: {e}")
-        return 1  # Retorna ID padrão em caso de erro
+        # data[0] pega o primeiro byte do pacote BLE (0x01, 0x02 ou 0x03)
+        color_id = data[0]
+        return color_id
+    except (IndexError, TypeError):
+        # Se o pacote estiver vazio ou inválido, o robô assume
+        # Vermelho por segurança para não travar o sistema.
+        return utils.config.COR_VERMELHO
