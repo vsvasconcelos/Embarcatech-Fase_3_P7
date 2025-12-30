@@ -6,6 +6,7 @@ import time
 
 # Importação dos módulos do projeto
 from core import BLEController, ColorFollower  # Módulos configurados via __init__.py
+from utils import streamer
 
 
 def main():
@@ -28,6 +29,12 @@ def main():
     vision_thread = threading.Thread(
         target=vision_module.run, name="VisionThread", daemon=True
     )
+
+    # Thread para o Servidor Web
+    flask_thread = threading.Thread(
+        target=streamer.start_server, name="FlaskThread", daemon=True
+    )
+    flask_thread.start()
 
     async def inicializar_sistema():
         """

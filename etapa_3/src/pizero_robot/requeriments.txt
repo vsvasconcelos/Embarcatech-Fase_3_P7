@@ -2,6 +2,9 @@
 opencv-python-headless>=4.5.0  # OpenCV otimizado para servidores/sistemas embarcados
 numpy>=1.21.0                 # Processamento numérico para matrizes de imagem
 
+# Servidor de Streaming
+flask>=2.0.0  # Adicionado para visualização remota
+
 # Bibliotecas de Comunicação
 bleak>=0.19.0                 # Cliente Bluetooth Low Energy (GATT)
 
