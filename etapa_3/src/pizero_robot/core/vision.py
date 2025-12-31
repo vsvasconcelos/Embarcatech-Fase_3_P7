@@ -62,12 +62,25 @@ class ColorFollower:
                     pass
 
                 # 3. Captura do frame
-                frame = self.picam2.capture_array()
-                if frame is None:
+                frame_raw = self.picam2.capture_array()
+                if frame_raw is None:
                     continue
 
                 # Preparação do frame de debug (Conversão RGB -> BGR para visualização correta)
+                # debug_frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
+                # Vermelho e Azul estavam invertidos
+                frame = frame_raw[:, :, ::-1].copy()
                 debug_frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
+
+                # 3. Restante do processamento de desenho (Telemetria)
+                # A partir daqui, use o debug_frame para desenhar círculos e textos
+                cv2.line(
+                    debug_frame,
+                    (center_reference, 0),
+                    (center_reference, utils.config.HEIGHT),
+                    (0, 255, 0),
+                    1,
+                )
 
                 # 4. Processamento Lógico (Detecção HSV)
                 hsv = cv2.cvtColor(frame, cv2.COLOR_RGB2HSV)
