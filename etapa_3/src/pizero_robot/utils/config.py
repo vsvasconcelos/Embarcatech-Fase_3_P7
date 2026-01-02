@@ -24,8 +24,17 @@ COLOR_NAMES = {COR_VERMELHO: "VERMELHO", COR_VERDE: "VERDE", COR_AZUL: "AZUL"}
 # --- CONFIGURAÇÕES DE VISÃO ---
 WIDTH = 320
 HEIGHT = 240
+
+"""
 COLOR_MAP = {
     COR_VERMELHO: {"lower": [0, 100, 100], "upper": [10, 255, 255]},
     COR_VERDE: {"lower": [35, 100, 100], "upper": [85, 255, 255]},
     COR_AZUL: {"lower": [100, 100, 100], "upper": [130, 255, 255]},
+}
+"""
+
+COLOR_MAP = {
+    COR_VERMELHO: {"lower": [0, 120, 70], "upper": [10, 255, 255]},
+    COR_VERDE: {"lower": [35, 100, 50], "upper": [85, 255, 255]},
+    COR_AZUL: {"lower": [100, 150, 50], "upper": [130, 255, 255]},
 }
