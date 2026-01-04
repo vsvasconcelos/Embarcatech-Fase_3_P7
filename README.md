@@ -26,7 +26,7 @@ O objetivo geral do projeto é elevar o nível de maturidade tecnológica (TRL) 
 
 ---
 ## Módulos   
-O projeto possui possui dois módulos:    
+O projeto possui dois módulos:    
 - Unidade de Controle do Robô - UCR (BitDogLab - MPU Pi Pico W);     
 - Unidade de Processamento de Visão - UPV (SBC - Pi Zero 2 W).     
 A comunicação entre eles ocorre por meio de BLE (Bluetooth Low Energy).    
@@ -53,6 +53,7 @@ A UPV utiliza a SBC Pi Zero 2W com câmera de 5 MP.
 
 ---
 ## :movie_camera: Imagens e/ou vídeos do projeto em funcionamento    
+### Unidade de Processamento de Visão   
 [![UPV - PiZero2W](https://img.youtube.com/vi/BHwsimsb04M/hqdefault.jpg)](https://youtu.be/BHwsimsb04M "UPV") 
 
 ---
