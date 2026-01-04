@@ -33,6 +33,32 @@ A comunicação entre eles ocorre por meio de BLE (Bluetooth Low Energy).
 ![Modulos](assets/modulos.png)
 
 ---
+### Unidade de Controle do Robô
+Este projeto implementa um robô autônomo que:
+- **Segue linhas coloridas** com prioridade: 🟡 Amarelo > 🔴 Vermelho > 🔵 Azul
+- **Para quando detecta preto** (linha de parada)
+- **Evita obstáculos** usando sensor ultrassônico
+- **Indica status** através de LED RGB
+
+#### Hardware Necessário
+
+| Componente | Quantidade | Descrição |
+|------------|:----------:|-----------|
+| BitDogLab | 1 | Microcontrolador principal |
+| TCS34725 | 2 | Sensor de cor I2C (esquerdo/direito) |
+| SR04 (módulo I2C) | 1 | Sensor ultrassônico para obstáculos |
+| BitMovel | 1 | Driver de motor |
+| Motor DC | 2 | Motores para as rodas |
+| LED RGB | 1 | Indicador de status |
+| Botão | 1 | Start/Stop |
+
+#### A arquitetura de software
+![UCR](assets/arquitetura_software_ucr.png)
+
+#### Fluxograma de software    
+![UCR](assets/fluxograma_software_ucr.png)
+
+---
 ### Unidade de Processamento de Visão  
 A UPV utiliza a SBC Pi Zero 2W com câmera de 5 MP.    
 ![UCR](assets/upv.png)
@@ -53,13 +79,20 @@ A UPV utiliza a SBC Pi Zero 2W com câmera de 5 MP.
 
 ---
 ## :movie_camera: Imagens e/ou vídeos do projeto em funcionamento    
+
+### Unidade de Controle do Robô
+
+[![UCR](https://img.youtube.com/vi/0dy9BSEWP0k/hqdefault.jpg)](https://youtu.be/0dy9BSEWP0k "UCR")
+
 ### Unidade de Processamento de Visão   
 [![UPV - PiZero2W](https://img.youtube.com/vi/BHwsimsb04M/hqdefault.jpg)](https://youtu.be/BHwsimsb04M "UPV") 
 
 ---
 ## :chart_with_upwards_trend: Resultados esperados ou obtidos     
 
-::: TODO :::
+### Unidade de Controle do Robô
+
+A UCR foi capaz de seguir as linhas coloridas individualmente (🟡 Amarelo, 🔴 Vermelho, 🔵 Azul), parar quando detectou preto (linha de parada) e evitar obstáculos usando sensor ultrassônico. O LED RGB indicava o status do robô.
 
 ---
 ## Referências:
