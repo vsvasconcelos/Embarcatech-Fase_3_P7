@@ -1,7 +1,17 @@
 # Robô Seguidor de faixa colorida com módulo de Visão Computacional inteligente
+![UCR](assets/ucr.png)
 
 ---
+## Equipe:   
+### Desenvolvimento: 
+- [Luan Felipe Azzi](https://www.linkedin.com/in/luan-azzi/) - Robô Móvel (UCR)
+- [Vagner Sanches Vasconcelos](https://www.linkedin.com/in/vsvasconcelos/) - Visão Computacional (UPV)
+### Orientação:
+- [Vinicius Ares](https://www.linkedin.com/in/viniciusares/)
+### Coordenação:
+- [Prof. Dr. Fabiano Fruett](https://www.linkedin.com/in/fabiano-fruett-816008245/)
 
+---
 ## :wrench: Conteúdo   
 | Pasta            | Descrição    |
 |-----------------------|---------------|
@@ -10,10 +20,6 @@
 | etapa_3    |Testes e otimização dos sistemas |
 | etapa_4    |Validação e documentação técnica final |
 | etapa_5    |Entrega final |
-
----
-![UCR](assets/ucr.png)
-
 ---
 ## :dart: Objetivo do projeto
 O objetivo geral do projeto é elevar o nível de maturidade tecnológica (TRL) de um robô móvel que, além de se locomover, será capaz de seguir diferentes cores e desviar de obstáculos no trajeto. Também é escopo um módulo de Visão Computacional inteligente que, acoplado ao robô, ampliará suas habilidades e permitirá ainda a incorporação de estratégias de controle com base em IA ao robô.
