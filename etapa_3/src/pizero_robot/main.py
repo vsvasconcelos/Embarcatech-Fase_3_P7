@@ -1,73 +1,70 @@
-import asyncio  # Gerencia as tarefas assíncronas (BLE)
-import queue  # Filas seguras para troca de dados entre Threads
-import sys  # Para lidar com encerramento do script
-import threading  # Gerencia a execução em paralelo (Visão)
-import time
+import asyncio
+import os
+import queue
+import sys
+import threading
 
-# Importação dos módulos do projeto
-from core import BLEController, ColorFollower  # Módulos configurados via __init__.py
+from core import BLEController, ColorFollower
 from utils import streamer
 
 
-def main():
-    """Função principal que orquestra a integração do sistema."""
+def pin_thread_to_core(thread_ident: int, core_id: int):
+    """Fixa uma thread (por seu identificador) a um núcleo de CPU específico."""
+    try:
+        os.sched_setaffinity(thread_ident, {core_id})
+        print(f"[Afinidade] Thread ID {thread_ident} fixada no core {core_id}")
+    except (AttributeError, OSError) as e:
+        print(f"[Afinidade] Erro ao fixar thread {thread_ident}: {e}")
 
+
+def main():
     print("--- Inicializando Robô Seguidor de Faixa (Pi Zero 2 W) ---")
 
-    # 1. Criação das Filas de Comunicação (Thread-Safe Queues)
-    # Fila de erro: Tamanho 1 para enviar sempre o cálculo mais recente
     error_q = queue.Queue(maxsize=1)
-    # Fila de cor: Recebe as notificações de troca de cor da Pico
     color_q = queue.Queue()
 
-    # 2. Instanciação dos Módulos
     vision_module = ColorFollower(color_queue=color_q, error_queue=error_q)
     ble_module = BLEController(error_queue=error_q, color_queue=color_q)
 
-    # 3. Configuração da Thread de Visão
-    # daemon=True garante que a thread morra se o processo principal encerrar
     vision_thread = threading.Thread(
         target=vision_module.run, name="VisionThread", daemon=True
     )
 
-    # Thread para o Servidor Web
     flask_thread = threading.Thread(
         target=streamer.start_server, name="FlaskThread", daemon=True
     )
     flask_thread.start()
 
-    async def inicializar_sistema():
-        """
-        Função interna assíncrona para garantir que a visão
-        só inicie após o Bluetooth estar estável.
-        """
-        print("[SISTEMA] Aguardando conexão BLE antes de iniciar Visão...")
+    # Aplica afinidade para a thread do Flask (após iniciar)
+    if flask_thread.native_id:
+        pin_thread_to_core(flask_thread.native_id, 2)
 
-        # Tenta conectar (chama o run() do ble_client.py)
+    async def inicializar_sistema():
+        print("[SISTEMA] Aguardando conexão BLE antes de iniciar Visão...")
         sucesso_ble = await ble_module.run()
 
         if sucesso_ble:
             print("[SISTEMA] BLE Conectado com sucesso!")
             print("[SISTEMA] Aguardando 4s para estabilizar hardware (Câmera/BT)...")
-
-            # Pausa crucial para o Raspberry Pi Zero 2 W não sobrecarregar o barramento
             await asyncio.sleep(4)
 
-            # Agora iniciamos a thread de visão
+            # Inicia thread de visão e aplica afinidade
             print("[SISTEMA] Iniciando Thread de Visão...")
             vision_thread.start()
 
-            # Mantém o programa "preso" aqui processando a comunicação BLE
-            # Isso evita o erro 'terminate called without an active exception'
+            if vision_thread.native_id:
+                pin_thread_to_core(vision_thread.native_id, 1)
+
+            # Aplica afinidade para a thread principal (que roda o asyncio)
+            pin_thread_to_core(threading.current_thread().native_id, 0)
+
             await ble_module.start_communication_loop()
         else:
             print(
                 "[ERRO] Não foi possível encontrar a BitDogLab. Verifique o dispositivo."
             )
 
-    # 4. Execução do Loop Principal
     try:
-        # Inicia o loop de eventos assíncrono
         asyncio.run(inicializar_sistema())
     except KeyboardInterrupt:
         print("\n[SISTEMA] Encerrando aplicação pelo usuário (Ctrl+C)...")
